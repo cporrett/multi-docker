@@ -1,0 +1,21 @@
+sudo: required
+language: generic
+services: 
+    - docker
+    
+before_install:
+    - docker build -t cporrett/react-my-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true cporrett/react-my-test npm run test
+  
+after_success:
+    - docker build -t cporrett/multi-client ./client
+    - docker build -t cporrett/multi-nginx ./nginx
+    - docker build -t cporrett/multi-server ./server
+    - docker build -t cporrett/multi-worker ./worker
+    - echo "$DOCKER_PASSWORD" ｜ docker login -u "$DOCKER_ID" --password-stdin    
+    - docker push cporrett/multi-client
+    - docker push cporrett/multi-nginx
+    - docker push cporrett/multi-server
+    - docker push cporrett/multi-worker
